@@ -2,7 +2,8 @@ name: 'Scheduled publish'
 type: module
 description: 'This module allows the user to create a scheduler for content moderation'
 core: 8.x
-package: 'Custom'
+package: 'Content'
 dependencies:
   - content_moderation
   - workflows
+  - ultimate_cron
