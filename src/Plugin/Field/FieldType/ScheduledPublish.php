@@ -64,7 +64,6 @@ class ScheduledPublish extends DateTimeItem implements DateTimeItemInterface {
 
   /**
    * {@inheritdoc}
-   * @throws \Drupal\Core\TypedData\Exception\MissingDataException
    */
   public function isEmpty() {
     return empty($this->get('moderation_state')->getValue()) || empty($this->get('value')->getValue());
