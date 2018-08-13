@@ -89,7 +89,7 @@ class CommonTest extends FieldKernelTestBase {
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2007-12-24T18:21Z	',
+      'value'            => '2007-12-24T18:21Z',
     ]);
     $page->save();
 
@@ -114,7 +114,7 @@ class CommonTest extends FieldKernelTestBase {
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2100-12-24T18:21Z	',
+      'value'            => '2100-12-24T18:21Z',
     ]);
     $page->save();
 

@@ -49,7 +49,7 @@ function scheduled_publish_get_fields($key) {
   $scheduledFields = [];
   foreach ($fields as $fieldName => $field) {
     /** @var $field FieldConfig */
-    if (strpos($fieldName, 'field_')) {
+    if (strpos($fieldName, 'field_') !== FALSE) {
       if ($field->getType() === 'scheduled_publish') {
         $scheduledFields[] = $fieldName;
       }
