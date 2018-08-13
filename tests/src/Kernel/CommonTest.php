@@ -2,38 +2,27 @@
 
 namespace Drupal\Tests\scheduled_publish\Kernel;
 
-use Drupal\degov_common\Common;
-use Drupal\degov_common\Entity\NodeService;
-use Drupal\KernelTests\KernelTestBase;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
-use Drupal\paragraphs\Entity\Paragraph;
-use Drupal\paragraphs\Entity\ParagraphsType;
-use Drupal\taxonomy\Entity\Term;
-use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\node\Entity\NodeType;
+use Drupal\Tests\field\Kernel\FieldKernelTestBase;
+use Drupal\workflows\Entity\Workflow;
 
-class CommonTest extends KernelTestBase {
+class CommonTest extends FieldKernelTestBase {
 
   /**
    * {@inheritdoc}
    */
   public static $modules = [
-    'user',
-    'system',
     'node',
-    'paragraphs',
-    'degov_common',
-    'config_replace',
-    'video_embed_field',
-    'paragraphs',
-    'file',
-    'text',
     'taxonomy',
-    'degov_node_normal_page',
-    'degov_scheduled_updates',
+    'scheduled_publish',
+    'content_moderation',
+    'workflows',
+    'ultimate_cron',
+    'datetime',
   ];
-
-  /** @var \Drupal\degov_common\Entity\EntityService */
-  private $entityService;
 
   /** @var \Drupal\scheduled_publish\Service\ScheduledPublishCron */
   private $scheduledUpdateService;
@@ -44,44 +33,99 @@ class CommonTest extends KernelTestBase {
    */
   protected function setUp() {
     parent::setUp();
-    $this->installEntitySchema('user');
-    $this->installEntitySchema('paragraph');
-    $this->installEntitySchema('taxonomy_term');
-    $this->installSchema('system', ['sequences']);
+    $this->installConfig([
+      'field',
+      'system',
+      'content_moderation',
+      'scheduled_publish',
+    ]);
     $this->installEntitySchema('node');
     $this->installSchema('node', 'node_access');
-    \Drupal::moduleHandler()->loadInclude('paragraphs', 'install');
-    \Drupal::moduleHandler()->loadInclude('taxonomy', 'install');
-    $this->entityService = \Drupal::service('degov_common.entity');
+    $this->installEntitySchema('user');
+    $this->installEntitySchema('content_moderation_state');
+    $this->installConfig('content_moderation');
+
     $this->scheduledUpdateService = \Drupal::service('scheduled_publish.update');
+    $this->createNodeType();
+  }
+
+  /**
+   * Creates a page node type to test with, ensuring that it's moderated.
+   */
+  protected function createNodeType() {
+
+
+    $field_storage = FieldStorageConfig::create([
+      'field_name'  => 'field_scheduled_publish',
+      'type'        => 'scheduled_publish',
+      'entity_type' => 'node',
+    ]);
+    $field_storage->save();
+
+    $node_type = NodeType::create([
+      'type' => 'page',
+    ]);
+    $node_type->save();
+
+    FieldConfig::create([
+      'entity_type' => 'node',
+      'field_name'  => 'field_scheduled_publish',
+      'bundle'      => 'page',
+      'label'       => 'Test field',
+    ])->save();
+
+    $workflow = Workflow::load('editorial');
+    $workflow->getTypePlugin()->addEntityTypeAndBundle('node', 'page');
+    $workflow->save();
   }
 
   public function testUpdateModerationState() {
-    $node = Node::create([
-      'title'             => 'An article node',
-      'type'              => 'normal_page',
-      'moderation_state'  => 'draft',
-      'scheduled_publish' => [
-        'moderation_state' => 'published',
-        'value'            => '2007-12-24T18:21Z',
-      ],
-    ]);
-    $node->save();
 
-    $nodeID = $this->entityService->load('node', [
-      'title' => 'An article node',
-      'type'  => 'normal_page',
+    $page = Node::create([
+      'type'  => 'page',
+      'title' => 'A',
     ]);
+
+    $page->moderation_state->value = 'draft';
+    $page->set('field_scheduled_publish', [
+      'moderation_state' => 'published',
+      'value'            => '2007-12-24T18:21Z	',
+    ]);
+    $page->save();
+
+    $nodeID = $page->id();
+
     self::assertTrue($nodeID);
 
     $this->scheduledUpdateService->doUpdate();
 
-    $nodeID = $this->entityService->load('node', [
-      'title'            => 'An article node',
-      'moderation_state' => 'published',
-      'type'             => 'normal_page',
-    ]);
-    self::assertTrue($nodeID);
+    $loadedNode = Node::load($nodeID);
+
+    self::assertEquals($loadedNode->moderation_state->value, 'published');
   }
 
+  public function testUpdateModerationStateFuture() {
+
+    $page = Node::create([
+      'type'  => 'page',
+      'title' => 'A',
+    ]);
+
+    $page->moderation_state->value = 'draft';
+    $page->set('field_scheduled_publish', [
+      'moderation_state' => 'published',
+      'value'            => '2100-12-24T18:21Z	',
+    ]);
+    $page->save();
+
+    $nodeID = $page->id();
+
+    self::assertTrue($nodeID);
+
+    $this->scheduledUpdateService->doUpdate();
+
+    $loadedNode = Node::load($nodeID);
+
+    self::assertEquals($loadedNode->moderation_state->value, 'draft');
+  }
 }

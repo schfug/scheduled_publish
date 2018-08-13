@@ -21,7 +21,7 @@
   </php>
 
   <testsuites>
-    <testsuite name="deGov">
+    <testsuite name="Scheduled publish">
       <directory>.</directory>
     </testsuite>
   </testsuites>
