@@ -17,11 +17,26 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
  *   id = "scheduled_publish",
  *   label = @Translation("Scheduled publish"),
  *   description = @Translation("Scheduled publish"),
- *   default_widget = "scheduled_publish",
- *   default_formatter = "scheduled_publish_formatter"
+ *   default_widget = "scheduled_publish"
  * )
  */
 class ScheduledPublish extends DateTimeItem {
+
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function defaultStorageSettings() {
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function storageSettingsForm(array &$form, FormStateInterface $form_state, $has_data) {
+    return [];
+  }
+
 
   /**
    * {@inheritdoc}
