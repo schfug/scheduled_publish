@@ -1,4 +1,4 @@
-<phpunit bootstrap="../../../core/tests/bootstrap.php" colors="true"
+<phpunit bootstrap="./../../../core/tests/bootstrap.php" colors="true"
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutChangesToGlobalState="true"
@@ -21,8 +21,8 @@
   </php>
 
   <testsuites>
-    <testsuite name="Scheduled publish">
-      <directory>.</directory>
+    <testsuite name="Scheduled Publish">
+      <directory>./tests/src</directory>
     </testsuite>
   </testsuites>
 

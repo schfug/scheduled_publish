@@ -1,20 +1,14 @@
 <?php
 
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Core\Field\FieldItemList;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\node\Entity\Node;
-use Drupal\scheduled_publish\Entity\ScheduledPublishEntity;
-use Drupal\scheduled_publish\Form\NodeEntityForm;
-
 /**
  * @file
  * Contains scheduled_publish.module.
  */
 
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\scheduled_publish\Service\ScheduledPublishCron;
 
 /**
  * Implements hook_help().
@@ -31,7 +25,6 @@ function scheduled_publish_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
-
 
 function scheduled_publish_is_node_edit_form() {
   $currentPath = \Drupal::service('path.current')->getPath();
@@ -98,9 +91,9 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
 
 /**
  * Implements hook_cron().
- *
- * @throws \Drupal\Core\Entity\EntityStorageException
  */
 function scheduled_publish_cron() {
-  \Drupal::service('scheduled_publish.update')->doUpdate();
+	/** @var ScheduledPublishCron $scheduledPublishUpdate */
+	$scheduledPublishUpdate = \Drupal::service('scheduled_publish.update');
+	$scheduledPublishUpdate->doUpdate();
 }
