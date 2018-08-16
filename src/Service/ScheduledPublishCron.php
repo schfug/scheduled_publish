@@ -5,9 +5,13 @@ namespace Drupal\scheduled_publish\Service;
 use DateTime;
 use DateTimeZone;
 use Drupal\Component\Datetime\Time;
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
@@ -15,26 +19,26 @@ use Drupal\node\Entity\Node;
 class ScheduledPublishCron {
 
   /**
-   * @var \Drupal\Core\Entity\EntityTypeBundleInfo
+   * @var EntityTypeBundleInfo
    */
   private $entityBundleInfoService;
 
   /**
-   * @var \EntityFieldManager
+   * @var EntityFieldManager
    */
   private $entityFieldManager;
 
   /**
-   * @var \Drupal\Core\Entity\EntityTypeManager
+   * @var EntityTypeManager
    */
   private $entityTypeManager;
 
   /**
-   * @var \Drupal\Component\Datetime\Time
+   * @var Time
    */
   private $dateTime;
 
-  public function __construct(EntityTypeBundleInfo $entityBundleInfo, EntityFieldManager $entityFieldManager, EntityTypeManager $entityTypeManager, Time $dateTime) {
+  public function __construct(EntityTypeBundleInfoInterface $entityBundleInfo, EntityFieldManagerInterface $entityFieldManager, EntityTypeManagerInterface $entityTypeManager, TimeInterface $dateTime) {
     $this->entityBundleInfoService = $entityBundleInfo;
     $this->entityFieldManager = $entityFieldManager;
     $this->entityTypeManager = $entityTypeManager;
@@ -67,7 +71,7 @@ class ScheduledPublishCron {
     $fields = $this->entityFieldManager
       ->getFieldDefinitions('node', $bundleName);
     foreach ($fields as $fieldName => $field) {
-      /** @var $field FieldConfig */
+      /** @var FieldConfig $field */
       if (strpos($fieldName, 'field_') !== FALSE) {
         if ($field->getType() === 'scheduled_publish') {
           $scheduledFields[] = $fieldName;

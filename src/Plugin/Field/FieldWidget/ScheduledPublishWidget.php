@@ -15,7 +15,7 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
  *
  * @FieldWidget(
  *   id = "scheduled_publish",
- *   label = @Translation("Scheduled publish"),
+ *   label = @Translation("Scheduled Publish"),
  *   field_types = {
  *     "scheduled_publish"
  *   }

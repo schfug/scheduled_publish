@@ -6,6 +6,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\scheduled_publish\Service\ScheduledPublishCron;
 use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
@@ -24,7 +25,7 @@ class CommonTest extends FieldKernelTestBase {
     'datetime',
   ];
 
-  /** @var \Drupal\scheduled_publish\Service\ScheduledPublishCron */
+  /** @var ScheduledPublishCron */
   private $scheduledUpdateService;
 
 
@@ -53,8 +54,6 @@ class CommonTest extends FieldKernelTestBase {
    * Creates a page node type to test with, ensuring that it's moderated.
    */
   protected function createNodeType() {
-
-
     $field_storage = FieldStorageConfig::create([
       'field_name'  => 'field_scheduled_publish',
       'type'        => 'scheduled_publish',
