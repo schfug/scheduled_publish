@@ -29,31 +29,28 @@ class ScheduledPublishWidget extends WidgetBase {
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
 
     $element['moderation_state'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Moderation state'),
-      '#description' => $this->t('Set to published state'),
-      '#options' =>
-        [
-
-        ],
-      '#size' => 5,
+      '#type'          => 'select',
+      '#title'         => $this->t('Moderation state'),
+      '#description'   => $this->t('Set to published state'),
+      '#options'       => [],
+      '#size'          => 5,
       '#default_value' => 'draft',
-      '#weight' => '0',
-      '#required' => $element['#required'],
+      '#weight'        => '0',
+      '#required'      => $element['#required'],
     ];
 
     $element['value'] = [
-      '#type' => 'datetime',
-      '#title' => $this->t('Scheduled date'),
-      '#description' => $this->t('The datetime of the scheduled publish'),
-      '#weight' => '0',
-      '#default_value' => NULL,
+      '#type'           => 'datetime',
+      '#title'          => $this->t('Scheduled date'),
+      '#description'    => $this->t('The datetime of the scheduled publish'),
+      '#weight'         => '0',
+      '#default_value'  => NULL,
       '#date_increment' => 1,
-      '#date_timezone' => drupal_get_user_timezone(),
-      '#required' => $element['#required'],
+      '#date_timezone'  => drupal_get_user_timezone(),
+      '#required'       => $element['#required'],
     ];
 
-    if($items[$delta]->moderation_state) {
+    if ($items[$delta]->moderation_state) {
       $state = $items[$delta]->moderation_state;
       $element['moderation_state']['#default_value'] = $state;
     }
@@ -71,7 +68,7 @@ class ScheduledPublishWidget extends WidgetBase {
   /**
    * {@inheritdoc}
    */
-  public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
+  public function massageFormValues(array $values, array $form, FormStateInterface $form_state): array {
     foreach ($values as &$item) {
       if (!empty($item['value']) && $item['value'] instanceof DrupalDateTime) {
         $date = $item['value'];
@@ -84,7 +81,7 @@ class ScheduledPublishWidget extends WidgetBase {
     return $values;
   }
 
-  protected function createDefaultValue(DrupalDateTime $date, string $timezone):DrupalDateTime {
+  private function createDefaultValue(DrupalDateTime $date, string $timezone): DrupalDateTime {
     $date->setTimezone(new \DateTimeZone($timezone));
     return $date;
   }

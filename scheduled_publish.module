@@ -63,34 +63,35 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
 
     $formObject = $form_state->getFormObject();
     $entity = $formObject->getEntity();
-    $entityID = $entity->id();
     $typeID = $entity->bundle();
     $scheduledPublishFields = scheduled_publish_get_fields($typeID);
 
-    $form['scheduled_publish_details'] = [
-      '#type' => 'details',
-      '#title' => t('Scheduled moderation'),
-      '#description' => t('Scheduled change of the moderation state e.g (draft => published)'),
-      '#weight' => -5,
-      '#group' => 'advanced',
-      '#access' => TRUE,
-      '#open' => TRUE,
-      '#tree' => TRUE,
-    ];
+    if(!empty($scheduledPublishFields)) {
+      $form['scheduled_publish_details'] = [
+        '#type'        => 'details',
+        '#title'       => t('Scheduled moderation'),
+        '#description' => t('Scheduled change of the moderation state e.g (draft => published)'),
+        '#weight'      => -5,
+        '#group'       => 'advanced',
+        '#access'      => TRUE,
+        '#open'        => TRUE,
+        '#tree'        => TRUE,
+      ];
 
-    foreach ($scheduledPublishFields as $fieldName) {
-      $form[$fieldName]['#group'] = 'scheduled_publish_details';
-    }
+      foreach ($scheduledPublishFields as $fieldName) {
+        $form[$fieldName]['#group'] = 'scheduled_publish_details';
+      }
 
-    /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
-    $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
-    $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
-    $states = [];
-    foreach ($transitions as $key => $value) {
-      $states[$transitions[$key]->to()->id()] = $transitions[$key]->label();
-    }
-    foreach ($scheduledPublishFields as $scheduledPublishField) {
-      $form[$scheduledPublishField]['widget'][0]['moderation_state']['#options'] = $states;
+      /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
+      $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
+      $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
+      $states = [];
+      foreach ($transitions as $key => $value) {
+        $states[$transitions[$key]->to()->id()] = $transitions[$key]->label();
+      }
+      foreach ($scheduledPublishFields as $scheduledPublishField) {
+        $form[$scheduledPublishField]['widget'][0]['moderation_state']['#options'] = $states;
+      }
     }
   }
 }
@@ -101,54 +102,5 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
  * @throws \Drupal\Core\Entity\EntityStorageException
  */
 function scheduled_publish_cron() {
-  $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo('node');
-
-  foreach ($bundles as $key => $value) {
-    $fields = \Drupal::service('entity_field.manager')
-      ->getFieldDefinitions('node', $key);
-    $scheduledFields = [];
-    foreach ($fields as $fieldName => $field) {
-      /** @var $field FieldConfig */
-      if (strpos($fieldName, 'field_') !== FALSE) {
-        if ($field->getType() === 'scheduled_publish') {
-          $scheduledFields[] = $fieldName;
-        }
-      }
-    }
-    if (count($scheduledFields) === 0) {
-      continue;
-    }
-
-    $query = \Drupal::entityQuery('node');
-    $query->condition('type', $key);
-    $nodes = $query->execute();
-    foreach ($nodes as $nodeId) {
-      /** @var \Drupal\node\Entity\Node $node */
-      $node = Node::load($nodeId);
-      foreach ($scheduledFields as $scheduledField) {
-        /** @var FieldItemList $scheduledEntity */
-        $scheduledEntity = $node->get($scheduledField);
-        if (empty($scheduledEntity->getValue())) {
-          continue;
-        }
-        $currentModerationState = $node->get('moderation_state')
-          ->getValue()[0]['value'];
-        $scheduledEntityStore = $scheduledEntity->getValue();
-        if ($currentModerationState === $scheduledEntityStore[0]['moderation_state']) {
-          $node->set($scheduledField, NULL);
-          $node->save();
-          continue;
-        }
-        $date = $scheduledEntityStore[0]['value'];
-        $datetime = new DateTime($date, new DateTimeZone(drupal_get_user_timezone()));
-        $unixts = $datetime->getTimestamp();
-
-        if ($unixts - \Drupal::time()->getCurrentTime() <= 0) {
-          $node->set($scheduledField, NULL);
-          $node->set('moderation_state', $scheduledEntityStore[0]['moderation_state']);
-          $node->save();
-        }
-      }
-    }
-  }
+  \Drupal::service('scheduled_publish.update')->doUpdate();
 }
