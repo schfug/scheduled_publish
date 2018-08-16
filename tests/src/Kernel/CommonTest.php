@@ -10,6 +10,12 @@ use Drupal\scheduled_publish\Service\ScheduledPublishCron;
 use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
+/**
+ * Class CommonTest
+ *
+ * @package Drupal\Tests\scheduled_publish\Kernel
+ * @group scheduled_publish
+ */
 class CommonTest extends FieldKernelTestBase {
 
   /**
