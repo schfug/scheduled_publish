@@ -5,9 +5,7 @@ namespace Drupal\scheduled_publish\Plugin\Field\FieldWidget;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
-use Drupal\Core\Field\WidgetInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\datetime\Plugin\Field\FieldType\DateTimeItem;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
@@ -26,7 +24,7 @@ class ScheduledPublishWidget extends WidgetBase {
   /**
    * {@inheritdoc}
    */
-  public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
+  public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state): array {
 
     $element['moderation_state'] = [
       '#type'          => 'select',
@@ -64,7 +62,6 @@ class ScheduledPublishWidget extends WidgetBase {
     return $element;
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -78,11 +75,14 @@ class ScheduledPublishWidget extends WidgetBase {
         $item['value'] = $date->format($format);
       }
     }
+
     return $values;
   }
 
   private function createDefaultValue(DrupalDateTime $date, string $timezone): DrupalDateTime {
     $date->setTimezone(new \DateTimeZone($timezone));
+
     return $date;
   }
+
 }

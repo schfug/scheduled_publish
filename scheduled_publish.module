@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\scheduled_publish\Service\ScheduledPublishCron;
 
@@ -26,7 +25,7 @@ function scheduled_publish_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-function scheduled_publish_is_node_edit_form() {
+function scheduled_publish_is_node_edit_form(): bool {
   $currentPath = \Drupal::service('path.current')->getPath();
   if (is_numeric(strpos($currentPath, '/node/'))
     && (is_numeric(strpos($currentPath, '/edit')) || is_numeric(strpos($currentPath, '/add')))) {
@@ -35,13 +34,12 @@ function scheduled_publish_is_node_edit_form() {
   return FALSE;
 }
 
-function scheduled_publish_get_fields($key) {
+function scheduled_publish_get_fields($key): array {
 
   $fields = \Drupal::service('entity_field.manager')
     ->getFieldDefinitions('node', $key);
   $scheduledFields = [];
   foreach ($fields as $fieldName => $field) {
-    /** @var $field FieldConfig */
     if (strpos($fieldName, 'field_') !== FALSE) {
       if ($field->getType() === 'scheduled_publish') {
         $scheduledFields[] = $fieldName;
@@ -51,6 +49,9 @@ function scheduled_publish_get_fields($key) {
   return $scheduledFields;
 }
 
+/**
+ * Implements hook_form_alter
+ */
 function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   if (scheduled_publish_is_node_edit_form()) {
 
@@ -59,16 +60,16 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
     $typeID = $entity->bundle();
     $scheduledPublishFields = scheduled_publish_get_fields($typeID);
 
-    if(!empty($scheduledPublishFields)) {
+    if (!empty($scheduledPublishFields)) {
       $form['scheduled_publish_details'] = [
-        '#type'        => 'details',
-        '#title'       => t('Scheduled moderation'),
+        '#type' => 'details',
+        '#title' => t('Scheduled moderation'),
         '#description' => t('Scheduled change of the moderation state e.g (draft => published)'),
-        '#weight'      => -5,
-        '#group'       => 'advanced',
-        '#access'      => TRUE,
-        '#open'        => TRUE,
-        '#tree'        => TRUE,
+        '#weight' => -5,
+        '#group' => 'advanced',
+        '#access' => TRUE,
+        '#open' => TRUE,
+        '#tree' => TRUE,
       ];
 
       foreach ($scheduledPublishFields as $fieldName) {
@@ -93,7 +94,9 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
  * Implements hook_cron().
  */
 function scheduled_publish_cron() {
-	/** @var ScheduledPublishCron $scheduledPublishUpdate */
-	$scheduledPublishUpdate = \Drupal::service('scheduled_publish.update');
-	$scheduledPublishUpdate->doUpdate();
+  /**
+   * @var ScheduledPublishCron $scheduledPublishUpdate
+   */
+  $scheduledPublishUpdate = \Drupal::service('scheduled_publish.update');
+  $scheduledPublishUpdate->doUpdate();
 }

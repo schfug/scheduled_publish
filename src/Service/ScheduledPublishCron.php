@@ -4,18 +4,18 @@ namespace Drupal\scheduled_publish\Service;
 
 use DateTime;
 use DateTimeZone;
-use Drupal\Component\Datetime\Time;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
-use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Field\FieldItemList;
-use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
 
+/**
+ * Class ScheduledPublishCron
+ *
+ * @package Drupal\scheduled_publish\Service
+ */
 class ScheduledPublishCron {
 
   /**
@@ -78,6 +78,7 @@ class ScheduledPublishCron {
         }
       }
     }
+
     return $scheduledFields;
   }
 
@@ -94,6 +95,7 @@ class ScheduledPublishCron {
 
     if ($currentModerationState === $scheduledEntityStore[0]['moderation_state']) {
       $this->updateNode($node, $scheduledEntityStore[0]['moderation_state'], $scheduledField);
+
       return;
     }
     $timestamp = $this->getTimestampFromIso8601($scheduledEntityStore[0]['value']);
@@ -105,6 +107,7 @@ class ScheduledPublishCron {
 
   private function getTimestampFromIso8601(string $dateIso8601): int {
     $datetime = new DateTime($dateIso8601, new DateTimeZone(drupal_get_user_timezone()));
+
     return $datetime->getTimestamp();
   }
 
