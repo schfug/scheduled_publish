@@ -7,4 +7,3 @@ version: 8.x-1.x-dev
 dependencies:
   - content_moderation
   - workflows
-  - ultimate_cron
