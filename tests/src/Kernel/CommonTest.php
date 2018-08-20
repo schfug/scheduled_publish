@@ -27,7 +27,6 @@ class CommonTest extends FieldKernelTestBase {
     'scheduled_publish',
     'content_moderation',
     'workflows',
-    'ultimate_cron',
     'datetime',
   ];
 
