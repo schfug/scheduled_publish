@@ -29,6 +29,7 @@ class ScheduledPublishCommands extends DrushCommands {
    *
    */
   public function doUpdate() {
-    $this->cron->doUpdate();
+    $this->publishCron->doUpdate();
+    $this->logger()->notice(t('Scheduled publish updates done.'));
   }
 }
