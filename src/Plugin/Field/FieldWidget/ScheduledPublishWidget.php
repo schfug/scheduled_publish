@@ -26,16 +26,17 @@ class ScheduledPublishWidget extends WidgetBase {
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state): array {
 
-    $element['moderation_state'] = [
-      '#type'          => 'select',
-      '#title'         => $this->t('Moderation state'),
-      '#description'   => $this->t('Set to published state'),
-      '#options'       => [],
-      '#size'          => 5,
-      '#default_value' => 'draft',
-      '#weight'        => '0',
-      '#required'      => $element['#required'],
-    ];
+    if($form_state->getBuildInfo()['base_form_id'] !== 'field_config_form') {
+      $element['moderation_state'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Moderation state'),
+        '#description' => $this->t('Set to published state'),
+        '#size' => 5,
+        '#default_value' => 'draft',
+        '#weight' => '0',
+        '#required' => $element['#required'],
+      ];
+    }
 
     $element['value'] = [
       '#type'           => 'datetime',
