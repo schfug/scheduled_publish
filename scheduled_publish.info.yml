@@ -3,7 +3,7 @@ type: module
 description: 'This module allows the user to create a scheduler for content moderation'
 core: 8.x
 package: 'Content'
-version: 8.x-2.0
+version: 8.x-2.x-dev
 dependencies:
   - drupal:content_moderation
   - drupal:workflows
