@@ -14,11 +14,11 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItem;
  *   id = "scheduled_publish",
  *   label = @Translation("Scheduled publish"),
  *   description = @Translation("Scheduled publish"),
- *   default_widget = "scheduled_publish"
+ *   default_widget = "scheduled_publish",
+ *   default_formatter = "datetime_default"
  * )
  */
 class ScheduledPublish extends DateTimeItem {
-
 
   /**
    * {@inheritdoc}
@@ -34,12 +34,10 @@ class ScheduledPublish extends DateTimeItem {
     return [];
   }
 
-
   /**
    * {@inheritdoc}
    */
   public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
-
     $properties = parent::propertyDefinitions($field_definition);
     $properties['moderation_state'] = DataDefinition::create('string')
       ->setLabel(t('The moderation state.'));
@@ -56,6 +54,7 @@ class ScheduledPublish extends DateTimeItem {
       'type'   => 'varchar',
       'length' => 32,
     ];
+
     return $schema;
   }
 
@@ -63,8 +62,9 @@ class ScheduledPublish extends DateTimeItem {
    * {@inheritdoc}
    */
   public function isEmpty() {
-    return empty($this->get('moderation_state')
-        ->getValue()) || empty($this->get('value')->getValue());
-  }
+    $is_moderation_state = empty($this->get('moderation_state')->getValue());
+    $is_value = empty($this->get('value')->getValue());
 
+    return $is_moderation_state || $is_value;
+  }
 }
