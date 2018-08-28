@@ -76,15 +76,22 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
         $form[$fieldName]['#group'] = 'scheduled_publish_details';
       }
 
-      /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
-      $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
-      $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
-      $states = [];
-      foreach ($transitions as $key => $value) {
-        $states[$transitions[$key]->to()->id()] = $transitions[$key]->label();
-      }
-      foreach ($scheduledPublishFields as $scheduledPublishField) {
-        $form[$scheduledPublishField]['widget'][0]['moderation_state']['#options'] = $states;
+      /** @var \Drupal\content_moderation\ModerationInformation $moderationInformationService */
+      $moderationInformationService = \Drupal::service('content_moderation.moderation_information');
+
+      if ($moderationInformationService->isModeratedEntity($entity)) {
+        /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
+        $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
+        $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
+        $states = [];
+
+        foreach ($transitions as $key => $value) {
+          $states[$transitions[$key]->to()->id()] = $transitions[$key]->label();
+        }
+
+        foreach ($scheduledPublishFields as $scheduledPublishField) {
+          $form[$scheduledPublishField]['widget'][0]['moderation_state']['#options'] = $states;
+        }
       }
     }
   }
