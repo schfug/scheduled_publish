@@ -21,7 +21,7 @@ pipelines:
           - export PATH="$HOME/.composer/vendor/bin:$PATH"
           - (cd drupal/web/modules/contrib/scheduled_publish && ../../../../vendor/bin/phpunit --testdox)
   branches:
-    8.x-*.x:
+    '8.x-*':
       - step:
           name: Build and test
           caches:
