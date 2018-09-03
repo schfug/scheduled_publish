@@ -7,3 +7,4 @@ version: 8.x-2.x-dev
 dependencies:
   - drupal:content_moderation
   - drupal:workflows
+project: 'scheduled_publish'
