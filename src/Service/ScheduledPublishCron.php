@@ -54,6 +54,7 @@ class ScheduledPublishCron {
       if (\count($scheduledFields) > 0) {
         $query = $this->entityTypeManager->getStorage('node')->getQuery('AND');
         $query->condition('type', $bundleName);
+        $query->accessCheck(FALSE);
         $nodes = $query->execute();
         foreach ($nodes as $nodeId) {
           /** @var \Drupal\node\Entity\Node $node */
