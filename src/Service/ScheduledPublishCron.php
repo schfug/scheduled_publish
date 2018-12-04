@@ -92,17 +92,14 @@ class ScheduledPublishCron {
     }
     $currentModerationState = $node->get('moderation_state')
       ->getValue()[0]['value'];
-    $scheduledEntityStore = $scheduledValue;
 
-    if ($currentModerationState === $scheduledEntityStore[0]['moderation_state']) {
-      $this->updateNode($node, $scheduledEntityStore[0]['moderation_state'], $scheduledField);
+    foreach ($scheduledValue as $key => $value) {
+      if ($currentModerationState === $value['moderation_state'] ||
+        $this->getTimestampFromIso8601($value['value']) <= $this->dateTime->getCurrentTime()) {
 
-      return;
-    }
-    $timestamp = $this->getTimestampFromIso8601($scheduledEntityStore[0]['value']);
-
-    if ($timestamp - $this->dateTime->getCurrentTime() <= 0) {
-      $this->updateNode($node, $scheduledEntityStore[0]['moderation_state'], $scheduledField);
+        unset($scheduledValue[$key]);
+        $this->updateNode($node, $value['moderation_state'], $scheduledField, $scheduledValue);
+      }
     }
   }
 
@@ -112,8 +109,8 @@ class ScheduledPublishCron {
     return $datetime->getTimestamp();
   }
 
-  private function updateNode(Node $node, string $moderationState, string $scheduledPublishField): void {
-    $node->set($scheduledPublishField, NULL);
+  private function updateNode(Node $node, string $moderationState, string $scheduledPublishField, $scheduledValue): void {
+    $node->set($scheduledPublishField, $scheduledValue);
     $node->set('moderation_state', $moderationState);
     $node->save();
   }
