@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\node\Entity\Node;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
  * Class ScheduledPublishCron
@@ -107,7 +108,8 @@ class ScheduledPublishCron {
   }
 
   private function getTimestampFromIso8601(string $dateIso8601): int {
-    $datetime = new DateTime($dateIso8601, new DateTimeZone(drupal_get_user_timezone()));
+    $datetime = new DateTime($dateIso8601, new DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+    $datetime->setTimezone(new \DateTimeZone(drupal_get_user_timezone()));
 
     return $datetime->getTimestamp();
   }
