@@ -56,6 +56,10 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
   if (scheduled_publish_is_node_edit_form()) {
 
     $formObject = $form_state->getFormObject();
+    if (!($formObject instanceof \Drupal\Core\Entity\EntityFormInterface)) {
+      // Not an entity form, nothin to alter.
+      return;
+    }
     $entity = $formObject->getEntity();
     $typeID = $entity->bundle();
     $scheduledPublishFields = scheduled_publish_get_fields($typeID);
