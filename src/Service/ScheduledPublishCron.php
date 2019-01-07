@@ -53,14 +53,15 @@ class ScheduledPublishCron {
 
       $scheduledFields = $this->getScheduledFields($bundleName);
       if (\count($scheduledFields) > 0) {
-        $query = $this->entityTypeManager->getStorage('node')->getQuery('AND');
-        $query->condition('type', $bundleName);
-        $query->accessCheck(FALSE);
-        $nodes = $query->execute();
-        foreach ($nodes as $nodeId) {
-          /** @var \Drupal\node\Entity\Node $node */
-          $node = Node::load($nodeId);
-          foreach ($scheduledFields as $scheduledField) {
+        foreach ($scheduledFields as $scheduledField) {
+          $query = $this->entityTypeManager->getStorage('node')->getQuery('AND');
+          $query->condition('type', $bundleName);
+          $query->condition($scheduledField, NULL, 'IS NOT NULL');
+          $query->accessCheck(FALSE);
+          $nodes = $query->execute();
+          foreach ($nodes as $nodeId) {
+            /** @var \Drupal\node\Entity\Node $node */
+            $node = Node::load($nodeId);
             $this->updateNodeField($node, $scheduledField);
           }
         }
