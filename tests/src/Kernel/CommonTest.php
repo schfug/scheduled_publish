@@ -115,7 +115,7 @@ class CommonTest extends FieldKernelTestBase {
 
     $loadedNode = Node::load($nodeID);
 
-    self::assertEquals($loadedNode->moderation_state->value, 'published');
+    self::assertEquals('published', $loadedNode->moderation_state->value);
   }
 
   public function testUpdateModerationStateFuture() {
@@ -140,6 +140,35 @@ class CommonTest extends FieldKernelTestBase {
 
     $loadedNode = Node::load($nodeID);
 
-    self::assertEquals($loadedNode->moderation_state->value, 'draft');
+    self::assertEquals('draft', $loadedNode->moderation_state->value);
+  }
+
+
+  public function testUpdateModerationStateFutureWithMorePagesAndArchivedContent() {
+
+    $page = Node::create([
+      'type'  => 'page',
+      'title' => 'A',
+    ]);
+
+    $page->moderation_state->value = 'draft';
+    $page->set('field_scheduled_publish', [
+      'moderation_state' => 'published',
+      'value'            => '2000-12-24T18:21Z',
+    ]);
+    $page->save();
+
+    $page->moderation_state->value = 'published';
+    $page->set('field_scheduled_publish', [
+      'moderation_state' => 'archived',
+      'value'            => '2000-12-24T18:21Z',
+    ]);
+    $page->save();
+
+    $this->scheduledUpdateService->doUpdate();
+
+    $loadedNode = Node::load($page->id());
+
+    self::assertEquals('archived', $loadedNode->moderation_state->value);
   }
 }

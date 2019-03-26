@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldItemList;
 use Drupal\node\Entity\Node;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
@@ -58,10 +59,11 @@ class ScheduledPublishCron {
           $query->condition('type', $bundleName);
           $query->condition($scheduledField, NULL, 'IS NOT NULL');
           $query->accessCheck(FALSE);
+          $query->latestRevision();
           $nodes = $query->execute();
-          foreach ($nodes as $nodeId) {
+          foreach ($nodes as $nodeRevision => $nodeId) {
             /** @var \Drupal\node\Entity\Node $node */
-            $node = Node::load($nodeId);
+            $node = $this->entityTypeManager->getStorage('node')->loadRevision($nodeRevision);
             $this->updateNodeField($node, $scheduledField);
           }
         }
