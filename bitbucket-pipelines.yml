@@ -19,7 +19,7 @@ pipelines:
           - mkdir drupal/web/modules/contrib
           - mv ../scheduled_publish drupal/web/modules/contrib
           - export PATH="$HOME/.composer/vendor/bin:$PATH"
-          - (cd drupal/web/modules/contrib/scheduled_publish && ../../../../vendor/bin/phpunit --testdox)
+          - (cd drupal/web/modules/contrib/scheduled_publish && ../../../../vendor/bin/phpunit)
   branches:
     '8.x-*':
       - step:
@@ -32,7 +32,7 @@ pipelines:
             - mkdir drupal/web/modules/contrib
             - mv ../scheduled_publish drupal/web/modules/contrib
             - export PATH="$HOME/.composer/vendor/bin:$PATH"
-            - (cd drupal/web/modules/contrib/scheduled_publish && ../../../../vendor/bin/phpunit --testdox)
+            - (cd drupal/web/modules/contrib/scheduled_publish && ../../../../vendor/bin/phpunit)
       - step:
           name: Push dev to drupal.org
           script:
