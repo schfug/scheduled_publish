@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\scheduled_publish\Kernel;
 
+use Drupal\Core\Config\Config;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
@@ -39,17 +40,25 @@ class CommonTest extends FieldKernelTestBase {
    */
   protected function setUp() {
     parent::setUp();
+    $this->setInstallProfile('standard');
     $this->installConfig([
       'field',
       'system',
       'content_moderation',
       'scheduled_publish',
     ]);
+
+
+    /**
+     * @var $configInstallerService \Drupal\Core\Config\ConfigInstaller
+     */
+    $configInstallerService = \Drupal::service('config.installer');
     $this->installEntitySchema('node');
     $this->installSchema('node', 'node_access');
     $this->installEntitySchema('user');
     $this->installEntitySchema('content_moderation_state');
     $this->installConfig('content_moderation');
+
 
     $this->scheduledUpdateService = \Drupal::service('scheduled_publish.update');
     $this->createNodeType();
@@ -64,6 +73,7 @@ class CommonTest extends FieldKernelTestBase {
       'type'        => 'scheduled_publish',
       'entity_type' => 'node',
     ]);
+
     $field_storage->save();
 
     $node_type = NodeType::create([
