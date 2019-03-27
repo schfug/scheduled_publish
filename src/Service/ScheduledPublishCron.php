@@ -4,13 +4,17 @@ namespace Drupal\scheduled_publish\Service;
 
 use DateTime;
 use DateTimeZone;
+use Drupal\Component\Datetime\Time;
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemList;
-use Drupal\node\Entity\Node;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
@@ -19,6 +23,15 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
  * @package Drupal\scheduled_publish\Service
  */
 class ScheduledPublishCron {
+
+  /**
+   * @var array
+   */
+  public static $supportedTypes = [
+    'node',
+    'media',
+    'block_content'
+  ];
 
   /**
    * @var EntityTypeBundleInfo
@@ -48,33 +61,38 @@ class ScheduledPublishCron {
   }
 
   public function doUpdate(): void {
-    $bundles = $this->entityBundleInfoService->getBundleInfo('node');
+    foreach(self::$supportedTypes as $supportedType) {
+      $this->doUpdateFor($supportedType);
+    }
+  }
+
+  private function doUpdateFor($entityType) {
+    $bundles = $this->entityBundleInfoService->getBundleInfo($entityType);
 
     foreach ($bundles as $bundleName => $value) {
 
-      $scheduledFields = $this->getScheduledFields($bundleName);
+      $scheduledFields = $this->getScheduledFields($entityType, $bundleName);
       if (\count($scheduledFields) > 0) {
         foreach ($scheduledFields as $scheduledField) {
-          $query = $this->entityTypeManager->getStorage('node')->getQuery('AND');
-          $query->condition('type', $bundleName);
+          $query = $this->entityTypeManager->getStorage($entityType)->getQuery('AND');
+          $query->condition($entityType === 'media' ? 'bundle' : 'type', $bundleName);
           $query->condition($scheduledField, NULL, 'IS NOT NULL');
           $query->accessCheck(FALSE);
           $query->latestRevision();
-          $nodes = $query->execute();
-          foreach ($nodes as $nodeRevision => $nodeId) {
-            /** @var \Drupal\node\Entity\Node $node */
-            $node = $this->entityTypeManager->getStorage('node')->loadRevision($nodeRevision);
-            $this->updateNodeField($node, $scheduledField);
+          $entities = $query->execute();
+          foreach ($entities as $entityRevision => $entityId) {
+            $entity = $this->entityTypeManager->getStorage($entityType)->loadRevision($entityRevision);
+            $this->updateEntityField($entity, $scheduledField);
           }
         }
       }
     }
   }
 
-  private function getScheduledFields(string $bundleName): array {
+  private function getScheduledFields(string $entityTypeName, string $bundleName): array {
     $scheduledFields = [];
     $fields = $this->entityFieldManager
-      ->getFieldDefinitions('node', $bundleName);
+      ->getFieldDefinitions($entityTypeName, $bundleName);
     foreach ($fields as $fieldName => $field) {
       /** @var FieldConfig $field */
       if (strpos($fieldName, 'field_') !== FALSE) {
@@ -87,26 +105,23 @@ class ScheduledPublishCron {
     return $scheduledFields;
   }
 
-  private function updateNodeField(Node $node, string $scheduledField): void {
+  private function updateEntityField(ContentEntityBase $entity, string $scheduledField): void {
     /** @var FieldItemList $scheduledEntity */
-    $scheduledEntity = $node->get($scheduledField);
+    $scheduledEntity = $entity->get($scheduledField);
     $scheduledValue = $scheduledEntity->getValue();
     if (empty($scheduledValue)) {
       return;
     }
-    $currentModerationState = $node->get('moderation_state')
+    $currentModerationState = $entity->get('moderation_state')
       ->getValue()[0]['value'];
-    $scheduledEntityStore = $scheduledValue;
 
-    if ($currentModerationState === $scheduledEntityStore[0]['moderation_state']) {
-      $this->updateNode($node, $scheduledEntityStore[0]['moderation_state'], $scheduledField);
+    foreach ($scheduledValue as $key => $value) {
+      if ($currentModerationState === $value['moderation_state'] ||
+        $this->getTimestampFromIso8601($value['value']) <= $this->dateTime->getCurrentTime()) {
 
-      return;
-    }
-    $timestamp = $this->getTimestampFromIso8601($scheduledEntityStore[0]['value']);
-
-    if ($timestamp - $this->dateTime->getCurrentTime() <= 0) {
-      $this->updateNode($node, $scheduledEntityStore[0]['moderation_state'], $scheduledField);
+        unset($scheduledValue[$key]);
+        $this->updateEntity($entity, $value['moderation_state'], $scheduledField, $scheduledValue);
+      }
     }
   }
 
@@ -117,10 +132,10 @@ class ScheduledPublishCron {
     return $datetime->getTimestamp();
   }
 
-  private function updateNode(Node $node, string $moderationState, string $scheduledPublishField): void {
-    $node->set($scheduledPublishField, NULL);
-    $node->set('moderation_state', $moderationState);
-    $node->save();
+  private function updateEntity(ContentEntityBase $entity, string $moderationState, string $scheduledPublishField, $scheduledValue): void {
+    $entity->set($scheduledPublishField, $scheduledValue);
+    $entity->set('moderation_state', $moderationState);
+    $entity->save();
   }
 
 }

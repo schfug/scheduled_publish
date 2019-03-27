@@ -5,6 +5,7 @@
  * Contains scheduled_publish.module.
  */
 
+use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\scheduled_publish\Service\ScheduledPublishCron;
@@ -25,19 +26,22 @@ function scheduled_publish_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-function scheduled_publish_is_node_edit_form(): bool {
+function scheduled_publish_is_supported_edit_form(): bool {
   $currentPath = \Drupal::service('path.current')->getPath();
-  if (is_numeric(strpos($currentPath, '/node/'))
-    && (is_numeric(strpos($currentPath, '/edit')) || is_numeric(strpos($currentPath, '/add')))) {
-    return TRUE;
+
+  foreach (ScheduledPublishCron::$supportedTypes as $supportedType) {
+    if (is_numeric(strpos($currentPath, '/' . explode('_', $supportedType)[0] . '/'))
+      && (is_numeric(strpos($currentPath, '/add')) || is_numeric(strpos($currentPath, '/edit')))) {
+      return TRUE;
+    }
   }
   return FALSE;
 }
 
-function scheduled_publish_get_fields($key): array {
+function scheduled_publish_get_fields(string $entityTypeName, string $key): array {
 
   $fields = \Drupal::service('entity_field.manager')
-    ->getFieldDefinitions('node', $key);
+    ->getFieldDefinitions($entityTypeName, $key);
   $scheduledFields = [];
   foreach ($fields as $fieldName => $field) {
     if (strpos($fieldName, 'field_') !== FALSE) {
@@ -53,16 +57,16 @@ function scheduled_publish_get_fields($key): array {
  * Implements hook_form_alter
  */
 function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if (scheduled_publish_is_node_edit_form()) {
+  if (scheduled_publish_is_supported_edit_form()) {
 
     $formObject = $form_state->getFormObject();
-    if (!($formObject instanceof \Drupal\Core\Entity\EntityFormInterface)) {
+    if (!($formObject instanceof EntityFormInterface)) {
       // Not an entity form, nothin to alter.
       return;
     }
     $entity = $formObject->getEntity();
     $typeID = $entity->bundle();
-    $scheduledPublishFields = scheduled_publish_get_fields($typeID);
+    $scheduledPublishFields = scheduled_publish_get_fields($entity->getEntityTypeId(), $typeID);
 
     if (!empty($scheduledPublishFields)) {
       $form['scheduled_publish_details'] = [
