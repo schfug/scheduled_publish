@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\scheduled_publish\Kernel;
 
-use Drupal\Core\Config\Config;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
@@ -12,12 +11,12 @@ use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
 /**
- * Class CommonTest
+ * Class nodeTests
  *
  * @package Drupal\Tests\scheduled_publish\Kernel
  * @group scheduled_publish
  */
-class CommonTest extends FieldKernelTestBase {
+class nodeTest extends FieldKernelTestBase {
 
   /**
    * {@inheritdoc}
@@ -48,11 +47,6 @@ class CommonTest extends FieldKernelTestBase {
       'scheduled_publish',
     ]);
 
-
-    /**
-     * @var $configInstallerService \Drupal\Core\Config\ConfigInstaller
-     */
-    $configInstallerService = \Drupal::service('config.installer');
     $this->installEntitySchema('node');
     $this->installSchema('node', 'node_access');
     $this->installEntitySchema('user');
