@@ -11,12 +11,12 @@ use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
 /**
- * Class nodeTests
+ * Class NodeTests
  *
  * @package Drupal\Tests\scheduled_publish\Kernel
  * @group scheduled_publish
  */
-class nodeTest extends FieldKernelTestBase {
+class NodeTest extends FieldKernelTestBase {
 
   /**
    * {@inheritdoc}

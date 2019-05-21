@@ -48,10 +48,10 @@ class ScheduledPublish extends DateTimeItem {
   /**
    * {@inheritdoc}
    */
-  public static function schema(FieldStorageDefinitionInterface $field_definition) {
+  public static function schema(FieldStorageDefinitionInterface $field_definition): array {
     $schema = parent::schema($field_definition);
     $schema['columns']['moderation_state'] = [
-      'type'   => 'varchar',
+      'type' => 'varchar',
       'length' => 32,
     ];
 

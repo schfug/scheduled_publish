@@ -53,6 +53,14 @@ class ScheduledPublishCron {
    */
   private $dateTime;
 
+  /**
+   * ScheduledPublishCron constructor.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entityBundleInfo
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Component\Datetime\TimeInterface $dateTime
+   */
   public function __construct(EntityTypeBundleInfoInterface $entityBundleInfo, EntityFieldManagerInterface $entityFieldManager, EntityTypeManagerInterface $entityTypeManager, TimeInterface $dateTime) {
     $this->entityBundleInfoService = $entityBundleInfo;
     $this->entityFieldManager = $entityFieldManager;
@@ -60,12 +68,23 @@ class ScheduledPublishCron {
     $this->dateTime = $dateTime;
   }
 
+  /**
+   *  Run field updates
+   */
   public function doUpdate(): void {
     foreach(self::$supportedTypes as $supportedType) {
       $this->doUpdateFor($supportedType);
     }
   }
 
+  /**
+   * Run field update for specific entity type
+   *
+   * @param $entityType
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
   private function doUpdateFor($entityType) {
     $bundles = $this->entityBundleInfoService->getBundleInfo($entityType);
 
@@ -89,6 +108,14 @@ class ScheduledPublishCron {
     }
   }
 
+  /**
+   * Returns scheduled publish fields
+   *
+   * @param string $entityTypeName
+   * @param string $bundleName
+   *
+   * @return array
+   */
   private function getScheduledFields(string $entityTypeName, string $bundleName): array {
     $scheduledFields = [];
     $fields = $this->entityFieldManager
@@ -105,6 +132,12 @@ class ScheduledPublishCron {
     return $scheduledFields;
   }
 
+  /**
+   * Update scheduled publish fields
+   *
+   * @param \Drupal\Core\Entity\ContentEntityBase $entity
+   * @param string $scheduledField
+   */
   private function updateEntityField(ContentEntityBase $entity, string $scheduledField): void {
     /** @var FieldItemList $scheduledEntity */
     $scheduledEntity = $entity->get($scheduledField);
@@ -125,6 +158,14 @@ class ScheduledPublishCron {
     }
   }
 
+  /**
+   * Returns timestamp from ISO-8601 datetime
+   *
+   * @param string $dateIso8601
+   *
+   * @return int
+   * @throws \Exception
+   */
   private function getTimestampFromIso8601(string $dateIso8601): int {
     $datetime = new DateTime($dateIso8601, new DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
     $datetime->setTimezone(new \DateTimeZone(drupal_get_user_timezone()));
@@ -132,6 +173,16 @@ class ScheduledPublishCron {
     return $datetime->getTimestamp();
   }
 
+  /**
+   * Updates entity
+   *
+   * @param \Drupal\Core\Entity\ContentEntityBase $entity
+   * @param string $moderationState
+   * @param string $scheduledPublishField
+   * @param $scheduledValue
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
   private function updateEntity(ContentEntityBase $entity, string $moderationState, string $scheduledPublishField, $scheduledValue): void {
     $entity->set($scheduledPublishField, $scheduledValue);
     $entity->set('moderation_state', $moderationState);
