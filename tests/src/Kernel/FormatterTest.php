@@ -132,7 +132,7 @@ class FormatterTest extends FieldKernelTestBase {
     $output = \Drupal::service('renderer')->renderPlain($build);
 
     self::assertTrue($nodeID);
-    self::assertTrue(strpos($output, '<div>2021-01-31 ------ published</div>') !== FALSE);
+    self::assertTrue(strpos($output, '<div>published ------ 2021-01-31</div>') !== FALSE);
 
     $this->scheduledUpdateService->doUpdate();
 

@@ -6,7 +6,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\scheduled_publish\Plugin\Field\FieldType\ScheduledPublish;
 
 /**
  * Plugin implementation of the 'scheduled_publish_widget' widget.
@@ -70,9 +70,9 @@ class ScheduledPublishWidget extends WidgetBase {
     foreach ($values as &$item) {
       if (!empty($item['value']) && $item['value'] instanceof DrupalDateTime) {
         $date = $item['value'];
-        $format = DateTimeItemInterface::DATETIME_STORAGE_FORMAT;
+        $format = ScheduledPublish::DATETIME_STORAGE_FORMAT;
         // Adjust the date for storage.
-        $date->setTimezone(new \DateTimezone(DateTimeItemInterface::STORAGE_TIMEZONE));
+        $date->setTimezone(new \DateTimezone(ScheduledPublish::STORAGE_TIMEZONE));
         $item['value'] = $date->format($format);
       }
     }

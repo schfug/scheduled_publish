@@ -12,7 +12,7 @@ use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\scheduled_publish\Plugin\Field\FieldType\ScheduledPublish;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -185,8 +185,8 @@ class ScheduledPublishGenericFormatter extends FormatterBase implements Containe
   private function parseData(string $strDateTime, string $strDateFormat, string $moderationState, string $pattern): string {
     $date = $this->parseDate($strDateTime, $strDateFormat);
     return str_replace(['%moderation_state%', '%date%'], [
-      $date,
       $moderationState,
+      $date,
     ], $pattern);
   }
 
@@ -204,7 +204,7 @@ class ScheduledPublishGenericFormatter extends FormatterBase implements Containe
       ->load($strDateFormat);
     if ($dateFormat !== NULL) {
       $pattern = $dateFormat->getPattern();
-      $drupalDateTime = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATETIME_STORAGE_FORMAT, $strDateTime);
+      $drupalDateTime = DrupalDateTime::createFromFormat(ScheduledPublish::DATETIME_STORAGE_FORMAT, $strDateTime);
       return $drupalDateTime->format($pattern);
     }
     $this->logger->error($this->t('Date format: "' . $this->getSetting('date_format') . '" could not be found!'));
