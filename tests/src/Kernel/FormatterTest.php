@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\scheduled_publish\Kernel;
 
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
@@ -11,12 +12,12 @@ use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
 /**
- * Class nodeTests
+ * Class FormatterTest
  *
  * @package Drupal\Tests\scheduled_publish\Kernel
  * @group scheduled_publish
  */
-class nodeTest extends FieldKernelTestBase {
+class FormatterTest extends FieldKernelTestBase {
 
   /**
    * {@inheritdoc}
@@ -28,6 +29,7 @@ class nodeTest extends FieldKernelTestBase {
     'content_moderation',
     'workflows',
     'datetime',
+    'user',
   ];
 
   /** @var ScheduledPublishCron */
@@ -48,11 +50,11 @@ class nodeTest extends FieldKernelTestBase {
     ]);
 
     $this->installEntitySchema('node');
+    $this->installEntitySchema('user');
     $this->installSchema('node', 'node_access');
     $this->installEntitySchema('user');
     $this->installEntitySchema('content_moderation_state');
     $this->installConfig('content_moderation');
-
 
     $this->scheduledUpdateService = \Drupal::service('scheduled_publish.update');
     $this->createNodeType();
@@ -63,8 +65,8 @@ class nodeTest extends FieldKernelTestBase {
    */
   protected function createNodeType() {
     $field_storage = FieldStorageConfig::create([
-      'field_name'  => 'field_scheduled_publish',
-      'type'        => 'scheduled_publish',
+      'field_name' => 'field_scheduled_publish',
+      'type' => 'scheduled_publish',
       'entity_type' => 'node',
     ]);
 
@@ -77,9 +79,9 @@ class nodeTest extends FieldKernelTestBase {
 
     FieldConfig::create([
       'entity_type' => 'node',
-      'field_name'  => 'field_scheduled_publish',
-      'bundle'      => 'page',
-      'label'       => 'Test field',
+      'field_name' => 'field_scheduled_publish',
+      'bundle' => 'page',
+      'label' => 'Test field',
     ])->save();
 
     $workflow = Workflow::load('editorial');
@@ -87,82 +89,53 @@ class nodeTest extends FieldKernelTestBase {
     $workflow->save();
   }
 
-  public function testUpdateModerationState() {
+  public function testRenderOutput() {
 
+    $display = EntityViewDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => 'page',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+
+    $display_options = [
+      'label' => 'above',
+      'type' => 'scheduled_publish_generic_formatter',
+      'settings' => [
+        'date_format' => 'html_date',
+        'text_pattern' => '%moderation_state% ------ %date%',
+      ],
+    ];
+    $display->setComponent('field_scheduled_publish', $display_options);
+
+    $display->save();
     $page = Node::create([
-      'type'  => 'page',
+      'type' => 'page',
       'title' => 'A',
+      'uid' => 1,
     ]);
 
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2007-12-24T18:21Z',
+      'value' => '2021-01-31T00:00:00',
     ]);
     $page->save();
 
     $nodeID = $page->id();
 
+    $view_builder = \Drupal::entityTypeManager()->getViewBuilder('node');
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $node = $storage->load($nodeID);
+    $build = $view_builder->view($node, 'default');
+
+    $output = \Drupal::service('renderer')->renderPlain($build);
+
     self::assertTrue($nodeID);
+    self::assertTrue(strpos($output, '<div>published ------ 2021-01-31</div>') !== FALSE);
 
     $this->scheduledUpdateService->doUpdate();
 
     $loadedNode = Node::load($nodeID);
-
-    self::assertEquals('published', $loadedNode->moderation_state->value);
-  }
-
-  public function testUpdateModerationStateFuture() {
-
-    $page = Node::create([
-      'type'  => 'page',
-      'title' => 'A',
-    ]);
-
-    $page->moderation_state->value = 'draft';
-    $page->set('field_scheduled_publish', [
-      'moderation_state' => 'published',
-      'value'            => '2100-12-24T18:21Z',
-    ]);
-    $page->save();
-
-    $nodeID = $page->id();
-
-    self::assertTrue($nodeID);
-
-    $this->scheduledUpdateService->doUpdate();
-
-    $loadedNode = Node::load($nodeID);
-
-    self::assertEquals('draft', $loadedNode->moderation_state->value);
-  }
-
-
-  public function testUpdateModerationStateFutureWithMorePagesAndArchivedContent() {
-
-    $page = Node::create([
-      'type'  => 'page',
-      'title' => 'A',
-    ]);
-
-    $page->moderation_state->value = 'draft';
-    $page->set('field_scheduled_publish', [
-      'moderation_state' => 'published',
-      'value'            => '2000-12-24T18:21Z',
-    ]);
-    $page->save();
-
-    $page->moderation_state->value = 'published';
-    $page->set('field_scheduled_publish', [
-      'moderation_state' => 'archived',
-      'value'            => '2000-12-24T18:21Z',
-    ]);
-    $page->save();
-
-    $this->scheduledUpdateService->doUpdate();
-
-    $loadedNode = Node::load($page->id());
-
-    self::assertEquals('archived', $loadedNode->moderation_state->value);
   }
 }

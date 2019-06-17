@@ -5,8 +5,8 @@
  * Contains scheduled_publish.module.
  */
 
+use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -63,7 +63,7 @@ function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $f
   if (scheduled_publish_is_supported_edit_form()) {
 
     $formObject = $form_state->getFormObject();
-    if (!($formObject instanceof ContentEntityFormInterface)) {
+    if (!($formObject instanceof EntityFormInterface)) {
       // Not an entity form, nothin to alter.
       return;
     }

@@ -11,12 +11,12 @@ use Drupal\Tests\media\Kernel\MediaKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 
 /**
- * Class mediaTests
+ * Class MediaTests
  *
  * @package Drupal\Tests\scheduled_publish\Kernel
  * @group scheduled_publish
  */
-class mediaTest extends MediaKernelTestBase {
+class MediaTest extends MediaKernelTestBase {
 
   /**
    * {@inheritdoc}
