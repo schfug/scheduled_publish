@@ -63,8 +63,8 @@ class NodeTest extends FieldKernelTestBase {
    */
   protected function createNodeType() {
     $field_storage = FieldStorageConfig::create([
-      'field_name'  => 'field_scheduled_publish',
-      'type'        => 'scheduled_publish',
+      'field_name' => 'field_scheduled_publish',
+      'type' => 'scheduled_publish',
       'entity_type' => 'node',
     ]);
 
@@ -77,9 +77,9 @@ class NodeTest extends FieldKernelTestBase {
 
     FieldConfig::create([
       'entity_type' => 'node',
-      'field_name'  => 'field_scheduled_publish',
-      'bundle'      => 'page',
-      'label'       => 'Test field',
+      'field_name' => 'field_scheduled_publish',
+      'bundle' => 'page',
+      'label' => 'Test field',
     ])->save();
 
     $workflow = Workflow::load('editorial');
@@ -90,14 +90,14 @@ class NodeTest extends FieldKernelTestBase {
   public function testUpdateModerationState() {
 
     $page = Node::create([
-      'type'  => 'page',
+      'type' => 'page',
       'title' => 'A',
     ]);
 
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2007-12-24T18:21Z',
+      'value' => '2007-12-24T18:21Z',
     ]);
     $page->save();
 
@@ -115,14 +115,14 @@ class NodeTest extends FieldKernelTestBase {
   public function testUpdateModerationStateFuture() {
 
     $page = Node::create([
-      'type'  => 'page',
+      'type' => 'page',
       'title' => 'A',
     ]);
 
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2100-12-24T18:21Z',
+      'value' => '2100-12-24T18:21Z',
     ]);
     $page->save();
 
@@ -141,21 +141,21 @@ class NodeTest extends FieldKernelTestBase {
   public function testUpdateModerationStateFutureWithMorePagesAndArchivedContent() {
 
     $page = Node::create([
-      'type'  => 'page',
+      'type' => 'page',
       'title' => 'A',
     ]);
 
     $page->moderation_state->value = 'draft';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'published',
-      'value'            => '2000-12-24T18:21Z',
+      'value' => '2000-12-24T18:21Z',
     ]);
     $page->save();
 
     $page->moderation_state->value = 'published';
     $page->set('field_scheduled_publish', [
       'moderation_state' => 'archived',
-      'value'            => '2000-12-24T18:21Z',
+      'value' => '2000-12-24T18:21Z',
     ]);
     $page->save();
 

@@ -69,7 +69,7 @@ class ScheduledPublishCron {
 
   /**
    *  Run field updates
-
+   *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */

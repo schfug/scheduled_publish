@@ -5,7 +5,6 @@ namespace Drupal\Tests\scheduled_publish\Kernel;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\media\Entity\Media;
-use Drupal\media\Entity\MediaType;
 use Drupal\scheduled_publish\Service\ScheduledPublishCron;
 use Drupal\Tests\media\Kernel\MediaKernelTestBase;
 use Drupal\workflows\Entity\Workflow;
@@ -81,7 +80,8 @@ class MediaTest extends MediaKernelTestBase {
     ])->save();
 
     $workflow = Workflow::load('editorial');
-    $workflow->getTypePlugin()->addEntityTypeAndBundle('media', $this->testMediaType->id());
+    $workflow->getTypePlugin()
+      ->addEntityTypeAndBundle('media', $this->testMediaType->id());
     $workflow->save();
   }
 
@@ -90,7 +90,7 @@ class MediaTest extends MediaKernelTestBase {
     $entity = Media::create([
       'bundle' => $this->testMediaType->id(),
       'title' => 'A',
-      'field_media_test' => 'something'
+      'field_media_test' => 'something',
     ]);
 
     $entity->moderation_state->value = 'draft';
@@ -116,7 +116,7 @@ class MediaTest extends MediaKernelTestBase {
     $entity = Media::create([
       'bundle' => $this->testMediaType->id(),
       'title' => 'A',
-      'field_media_test' => 'something'
+      'field_media_test' => 'something',
     ]);
 
     $entity->moderation_state->value = 'draft';
@@ -143,7 +143,7 @@ class MediaTest extends MediaKernelTestBase {
     $entity = Media::create([
       'bundle' => $this->testMediaType->id(),
       'name' => 'A',
-      'field_media_test' => 'something'
+      'field_media_test' => 'something',
     ]);
 
     $entity->moderation_state->value = 'draft';
