@@ -11,7 +11,7 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
-This module contains a field type for nodes to update the moderation state of
+This module introduces a field type for nodes to update the moderation state of
 some content types.
 
  * For a full description of the module, visit the project page:
@@ -24,7 +24,7 @@ some content types.
 REQUIREMENTS
 ------------
 
-This module requires following module outside of Drupal core:
+This module requires the following module other than Drupal core:
 
  * Content moderation - https://www.drupal.org/project/content_moderation
 
@@ -32,7 +32,7 @@ This module requires following module outside of Drupal core:
 INSTALLATION
 ------------
 
- * Install the Scheduled Publish module as you would normally install a
+ * Install this module normally, just like you would install a
    contributed Drupal module. Visit https://www.drupal.org/node/1897420 for
    further information.
 
@@ -48,8 +48,8 @@ CONFIGURATION
        the node bundle.
     4. There will now be a "Scheduled Moderation" field set.
 
-Notice: You should do the drupal cron every few minutes to guarantee that the
-updates of the moderation state will be done at the correct time.
+Notice: You should run the drupal cron every few minutes to make sure that
+updates of the moderation state are finished at the correct time.
 
 
 MAINTAINERS
