@@ -24,10 +24,8 @@ some content types.
 REQUIREMENTS
 ------------
 
-This module requires the following module other than Drupal core:
-
- * Content moderation - https://www.drupal.org/project/content_moderation
-
+  * None
+ 
 
 INSTALLATION
 ------------
@@ -63,3 +61,4 @@ MAINTAINERS
 Supporting organizations:
 
  * publicplan GmbH - https://www.drupal.org/publicplan-gmbh
+ * schfug UG (haftungsbeschränkt) - https://www.drupal.org/schfug-ug
