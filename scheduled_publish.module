@@ -29,18 +29,6 @@ function scheduled_publish_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-function scheduled_publish_is_supported_edit_form(): bool {
-  $currentPath = \Drupal::service('path.current')->getPath();
-
-  foreach (ScheduledPublishCron::$supportedTypes as $supportedType) {
-    if (is_numeric(strpos($currentPath, '/' . explode('_', $supportedType)[0] . '/'))
-      && (is_numeric(strpos($currentPath, '/add')) || is_numeric(strpos($currentPath, '/edit')))) {
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
 function scheduled_publish_get_fields(string $entityTypeName, string $key): array {
 
   $fields = \Drupal::service('entity_field.manager')
@@ -60,72 +48,78 @@ function scheduled_publish_get_fields(string $entityTypeName, string $key): arra
  * Implements hook_form_alter
  */
 function scheduled_publish_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if (scheduled_publish_is_supported_edit_form()) {
+  $formObject = $form_state->getFormObject();
+  if (!($formObject instanceof ContentEntityFormInterface)) {
+    // Not an entity form, nothin to alter.
+    return;
+  }
 
-    $formObject = $form_state->getFormObject();
-    if (!($formObject instanceof ContentEntityFormInterface)) {
-      // Not an entity form, nothin to alter.
-      return;
-    }
-    $entity = $formObject->getEntity();
-    $typeID = $entity->bundle();
-    $scheduledPublishFields = scheduled_publish_get_fields($entity->getEntityTypeId(), $typeID);
+  $entity = $formObject->getEntity();
 
-    if (!empty($scheduledPublishFields)) {
-      $form['scheduled_publish_details'] = [
-        '#type' => 'details',
-        '#title' => t('Scheduled moderation'),
-        '#description' => t('Scheduled change of the moderation state e.g (draft => published)'),
-        '#weight' => -5,
-        '#group' => 'advanced',
-        '#access' => TRUE,
-        '#open' => TRUE,
-        '#tree' => TRUE,
-      ];
+  if (!in_array($entity->getEntityTypeId(), ScheduledPublishCron::$supportedTypes)) {
+    // Entity is not supported, nothing to alter.
+    return;
+  }
 
-      foreach ($scheduledPublishFields as $fieldName) {
-        $form[$fieldName]['#group'] = 'scheduled_publish_details';
-      }
+  $scheduledPublishFields = scheduled_publish_get_fields($entity->getEntityTypeId(), $entity->bundle());
 
-      /** @var \Drupal\content_moderation\ModerationInformation $moderationInformationService */
-      $moderationInformationService = \Drupal::service('content_moderation.moderation_information');
+  if (!array_intersect($scheduledPublishFields, array_keys($form))) {
+    // Fields not found in the form, nothing to alter.
+    return;
+  }
 
-      if ($moderationInformationService->isModeratedEntity($entity)) {
-        /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
-        $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
-        $orgStatus = $entity->moderation_state->value;
-        foreach ($scheduledPublishFields as $scheduledPublishField) {
-          $id_prefix = implode('-', $form[$scheduledPublishField]['#parents']);
-          $wrapper_id = Html::getUniqueId($id_prefix . '-ajax-wrapper');
+  $form['scheduled_publish_details'] = [
+    '#type' => 'details',
+    '#title' => t('Scheduled moderation'),
+    '#description' => t('Scheduled change of the moderation state e.g (draft => published)'),
+    '#weight' => -5,
+    '#group' => 'advanced',
+    '#access' => TRUE,
+    '#open' => TRUE,
+    '#tree' => TRUE,
+  ];
 
-          $form[$scheduledPublishField]['#tree'] = TRUE;
-          $form[$scheduledPublishField]['#prefix'] = '<div id="' . $wrapper_id . '">';
-          $form[$scheduledPublishField]['#suffix'] = '</div>';
-          $form[$scheduledPublishField]['#wrapper_id'] = $wrapper_id;
+  foreach ($scheduledPublishFields as $fieldName) {
+    $form[$fieldName]['#group'] = 'scheduled_publish_details';
+  }
 
-          $prevStatus = $orgStatus;
-          foreach (Element::children($form[$scheduledPublishField]['widget']) as $delta) {
-            $entity->moderation_state->value = $prevStatus;
-            $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
-            $states = [];
+  /** @var \Drupal\content_moderation\ModerationInformation $moderationInformationService */
+  $moderationInformationService = \Drupal::service('content_moderation.moderation_information');
 
-            foreach ($transitions as $key => $value) {
-              $states[$transitions[$key]->to()
-                ->id()] = $transitions[$key]->label();
-            }
+  if ($moderationInformationService->isModeratedEntity($entity)) {
+    /** @var \Drupal\content_moderation\StateTransitionValidation $transitionValidationService */
+    $transitionValidationService = \Drupal::service('content_moderation.state_transition_validation');
+    $orgStatus = $entity->moderation_state->value;
+    foreach ($scheduledPublishFields as $scheduledPublishField) {
+      $id_prefix = implode('-', $form[$scheduledPublishField]['#parents']);
+      $wrapper_id = Html::getUniqueId($id_prefix . '-ajax-wrapper');
 
-            $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#options'] = $states;
-            $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#ajax'] = [
-              'callback' => 'scheduled_publish_ajax_refresh',
-              'wrapper' => $form[$scheduledPublishField]['#wrapper_id'],
-            ];
+      $form[$scheduledPublishField]['#tree'] = TRUE;
+      $form[$scheduledPublishField]['#prefix'] = '<div id="' . $wrapper_id . '">';
+      $form[$scheduledPublishField]['#suffix'] = '</div>';
+      $form[$scheduledPublishField]['#wrapper_id'] = $wrapper_id;
 
-            $prevStatus = $_POST[$scheduledPublishField][$delta]['moderation_state'] ?? $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#default_value'];
-          }
+      $prevStatus = $orgStatus;
+      foreach (Element::children($form[$scheduledPublishField]['widget']) as $delta) {
+        $entity->moderation_state->value = $prevStatus;
+        $transitions = $transitionValidationService->getValidTransitions($entity, \Drupal::currentUser());
+        $states = [];
+
+        foreach ($transitions as $key => $value) {
+          $states[$transitions[$key]->to()
+            ->id()] = $transitions[$key]->label();
         }
-        $entity->moderation_state->value = $orgStatus;
+
+        $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#options'] = $states;
+        $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#ajax'] = [
+          'callback' => 'scheduled_publish_ajax_refresh',
+          'wrapper' => $form[$scheduledPublishField]['#wrapper_id'],
+        ];
+
+        $prevStatus = $_POST[$scheduledPublishField][$delta]['moderation_state'] ?? $form[$scheduledPublishField]['widget'][$delta]['moderation_state']['#default_value'];
       }
     }
+    $entity->moderation_state->value = $orgStatus;
   }
 }
 
