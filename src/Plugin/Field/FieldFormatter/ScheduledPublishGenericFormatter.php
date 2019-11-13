@@ -10,7 +10,7 @@ use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\scheduled_publish\Plugin\Field\FieldType\ScheduledPublish;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -49,10 +49,10 @@ class ScheduledPublishGenericFormatter extends FormatterBase implements Containe
    * @param $label
    * @param $view_mode
    * @param array $third_party_settings
-   * @param \Drupal\Core\Logger\LoggerChannelFactory $loggerChannelFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    * @param \Drupal\Core\Entity\EntityTypeManager $entityTypeManager
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, LoggerChannelFactory $loggerChannelFactory, EntityTypeManager $entityTypeManager) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, LoggerChannelFactoryInterface $loggerChannelFactory, EntityTypeManager $entityTypeManager) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->logger = $loggerChannelFactory->get('scheduled_publish');
     $this->entityTypeManager = $entityTypeManager;
